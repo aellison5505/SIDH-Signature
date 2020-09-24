@@ -22,9 +22,8 @@ export class SikeSig {
         let randomBytes =  Buffer.alloc(32);
         randomFillSync(randomBytes);
 
-        let preShaKey = createHash('sha256').update(keyPair.PrivateKey).digest();
-        let temp = Buffer.concat([randomBytes,preShaKey]);
-        let shaKeyHash = createHash('sha512').update(temp).digest();
+        let preShaKeyHash = Buffer.concat([randomBytes,keyPair.PrivateKey]);
+        let shaKeyHash = createHash('sha512').update(preShaKeyHash).digest();
 
         let msgBytes = Buffer.concat([shaKeyHash, msg]);
 
@@ -41,7 +40,7 @@ export class SikeSig {
             hmsg[i] = msgBytes[i] ^ j[i];
         }
 
-        let sig = Buffer.concat([keyPair.PublicKey,msgBytes,hmsg])
+        let sig = Buffer.concat([keyPair.PublicKey,shaKeyHash,hmsg])
         res(sig);
 
         });
@@ -51,16 +50,15 @@ export class SikeSig {
         return new Promise<any>(async (res,err)=>{
             let pubKey = Buffer.alloc(564);
             let shaKeyHash = Buffer.alloc(64);
-            let ck_msg = Buffer.alloc(32);
             let hmsg = Buffer.alloc(96);
-            
+
             sig.copy(pubKey,0,0,564);
             sig.copy(shaKeyHash,0,564,564+64);
-            sig.copy(ck_msg,0,564+64,564+64+32);
-            sig.copy(hmsg,0,564+64+32,564+64+32+96);
+          //  sig.copy(ck_msg,0,564+64,564+64+32);
+            sig.copy(hmsg,0,564+64,564+64+96);
 
             (Buffer.compare(pubKey,signerPubKey) === 0 ?  null: err(new Error('signer public key not matched')));
-            (Buffer.compare(ck_msg,msg) === 0 ?  null: err(new Error('bad msg')));
+           
 
             let msgBytes = Buffer.concat([shaKeyHash, msg]);
             
@@ -76,6 +74,10 @@ export class SikeSig {
                 chk[i] = hmsg[i] ^ j[i];
             };
 
+            let ck_msg = Buffer.alloc(32);    
+            chk.copy(ck_msg,0,64,64+32);
+
+            (Buffer.compare(ck_msg,msg) === 0 ?  null: err(new Error('bad msg')));
             (chk.compare(msgBytes) === 0 ? res(true) : err(new Error('does not match')));
           //  res(Buffer.compare(hmsg,chk));
         });

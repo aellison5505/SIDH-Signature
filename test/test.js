@@ -33,7 +33,7 @@ describe('SIKE SIG', () =>{
         });
         it('should return a signature',()=>{
         //    console.log(this.sig.toString('hex'));
-            expect(this.sig.length).to.be.equal(756);
+            expect(this.sig.length).to.be.equal(724);
         });
     });
 
@@ -59,14 +59,6 @@ describe('SIKE SIG', () =>{
             await this.sidh.verifySignature(this.testBuf,this.keys.PublicKey,bad).catch((err) =>{
                 expect(err.message).to.be.equal('does not match');
             });
-        });
-
-        it('should catch does not match msg_bytes',async ()=>{
-            let bad = Buffer.from(this.sig);
-            bad[564+10] = 0;
-            await this.sidh.verifySignature(this.testBuf,this.keys.PublicKey,bad).catch((err) =>{
-                expect(err.message).to.be.equal('does not match');
-             });
         });
         it('should catch does not match pub key',async ()=>{
             let bad = Buffer.from(this.keys.PublicKey);
