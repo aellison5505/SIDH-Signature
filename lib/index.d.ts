@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { SIDH, keys } from 'node-sidh/lib';
+import { SIDH, keys } from 'node-sidh';
 export interface keyPair extends keys {
 }
 export declare class SikeSig {
@@ -7,6 +7,6 @@ export declare class SikeSig {
     constructor();
     createKeyPairB(): Promise<keyPair>;
     createSignature(msg: Buffer, keyPair: keyPair): Promise<Buffer>;
-    verifySignature(msg: Buffer, signerPubKey: Buffer, sig: Buffer): Promise<any>;
+    verifySignature(msg: Buffer, sig: Buffer): Promise<boolean>;
 }
 //# sourceMappingURL=index.d.ts.map
