@@ -1,0 +1,33 @@
+Your root OID is: 
+1.2.840.113556.1.8000.2554.13706.62856.3366.18349.42519.8729046.10026086
+
+
+This prefix should be used to name your schema attributes and classes. For example: if your prefix is "Microsoft", you should name schema elements like "microsoft-Employee-ShoeSize". For more information on the prefix, view the Schema Naming Rules in the server Application Specification (http://www.microsoft.com/windowsserver2003/partners/isvs/appspec.mspx).
+
+You can create subsequent OIDs for new schema classes and attributes by appending a .X to the OID where X may be any number that you choose.  A common schema extension scheme generally uses the following structure:
+If your assigned OID was: 1.2.840.113556.1.8000.2554.999999
+
+then classes could be under: 1.2.840.113556.1.8000.2554.999999.1 
+which makes the first class OID: 1.2.840.113556.1.8000.2554.999999.1.1
+the second class OID: 1.2.840.113556.1.8000.2554.999999.1.2     etc...
+
+Using this example attributes could be under: 1.2.840.113556.1.8000.2554.999999.2 
+which makes the first attribute OID: 1.2.840.113556.1.8000.2554.999999.2.1 
+the second attribute OID: 1.2.840.113556.1.8000.2554.999999.2.2     etc...
+
+Here are some other useful links regarding AD schema:
+Understanding AD Schema
+http://technet2.microsoft.com/WindowsServer/en/Library/b7b5b74f-e6df-42f6-a928-e52979a512011033.mspx 
+
+Developer documentation on AD Schema:
+http://msdn2.microsoft.com/en-us/library/ms675085.aspx 
+
+Extending the Schema
+http://msdn2.microsoft.com/en-us/library/ms676900.aspx 
+
+Step-by-Step Guide to Using Active Directory Schema and Display Specifiers 
+http://www.microsoft.com/technet/prodtechnol/windows2000serv/technologies/activedirectory/howto/adschema.mspx 
+
+Troubleshooting AD Schema http://technet2.microsoft.com/WindowsServer/en/Library/6008f7bf-80de-4fc0-ae3e-51eda0d7ab651033.mspx  
+
+

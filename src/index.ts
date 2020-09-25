@@ -1,16 +1,17 @@
-import { SIDH, keys } from 'node-sidh';
-//import * as nodeSidh from 'node-sidh/lib/node-sidh';
+import { SIDH, keys, Sha3 } from 'node-sidh';
 
-import { randomFillSync, createHash } from 'crypto';
+import { randomFillSync } from 'crypto';
 
 export interface keyPair extends keys{};
 
 export class SikeSig {
 
     sidh: SIDH;
+    sha3: Sha3;
 
     constructor() {
         this.sidh = new SIDH();
+        this.sha3 = new Sha3();
     }
 
     async createKeyPairB(): Promise<keyPair> {
@@ -19,18 +20,24 @@ export class SikeSig {
 
      async createSignature(msg: Buffer, keyPair: keyPair): Promise<Buffer> {
         return new Promise<Buffer>(async (res)=>{
+        const shake256 = this.sha3.shake256;
+
         let randomBytes =  Buffer.alloc(32);
         randomFillSync(randomBytes);
 
         let preShaKeyHash = Buffer.concat([randomBytes,keyPair.PrivateKey]);
-        let shaKeyHash = createHash('sha512').update(preShaKeyHash).digest();
-        
-        let publicKeyHash = createHash('sha256').update(keyPair.PublicKey).digest();
+        //let shaKeyHash = createHash('sha512').update(preShaKeyHash).digest();
+        let shaKeyHash = await shake256(preShaKeyHash, 64);
+        //let publicKeyHash = createHash('sha256').update(keyPair.PublicKey).digest();
+        let publicKeyHash = await shake256(keyPair.PublicKey, 32);
         let msgBytes = Buffer.concat([publicKeyHash,shaKeyHash,msg]);
 
-        let preKey = createHash('sha512').update(Buffer.concat([keyPair.PublicKey,shaKeyHash, msg])).digest();
+        // let preKey = createHash('sha512').update(Buffer.concat([keyPair.PublicKey,shaKeyHash, msg])).digest();
         let private_key_A = Buffer.alloc(47);
-        preKey.copy(private_key_A,0,0,47);
+        private_key_A = await shake256(Buffer.concat([keyPair.PublicKey,shaKeyHash, msg]), 47);
+
+        //let private_key_A = Buffer.alloc(47);
+       // preKey.copy(private_key_A,0,0,47);
         private_key_A[46] &= 0x0F;   
         
         let pk = await this.sidh.createPubA(private_key_A);
@@ -49,6 +56,7 @@ export class SikeSig {
 
     async verifySignature(msg: Buffer, sig: Buffer): Promise<boolean> {
         return new Promise<boolean>(async (res,err)=>{
+            const shake256 = this.sha3.shake256;
             let signerPubKey = Buffer.alloc(564);
             let shaKeyHash = Buffer.alloc(64);
             let hmsg = Buffer.alloc(128);
@@ -58,13 +66,15 @@ export class SikeSig {
           //  sig.copy(ck_msg,0,564+64,564+64+32);
             sig.copy(hmsg,0,564+64,564+64+128);
 
-            let signerPubKeyHash = createHash('sha256').update(signerPubKey).digest();
-
+            // let signerPubKeyHash = createHash('sha256').update(signerPubKey).digest();
+            let signerPubKeyHash = await shake256(signerPubKey, 32);
             let msgBytes = Buffer.concat([signerPubKeyHash,shaKeyHash, msg]);
             
-            let preKey = createHash('sha512').update(Buffer.concat([signerPubKey, shaKeyHash, msg])).digest();
+            //let preKey = createHash('sha512').update(Buffer.concat([signerPubKey, shaKeyHash, msg])).digest();
+
             let private_key_A = Buffer.alloc(47);
-            preKey.copy(private_key_A,0,0,47);
+            private_key_A = await shake256(Buffer.concat([signerPubKey,shaKeyHash, msg]), 47);
+            //preKey.copy(private_key_A,0,0,47);
             private_key_A[46] &= 0x0F; 
 
             let j = await this.sidh.sharedKey(private_key_A, signerPubKey);
