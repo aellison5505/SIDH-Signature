@@ -43,9 +43,10 @@ export class SikeSig {
         let pk = await this.sidh.createPubA(private_key_A);
         let j = await this.sidh.sharedKeySender(keyPair.PrivateKey, pk);
         //let h = createHash('sha512').update(j).digest();
+        let h = await shake256(j, 128);
         let hmsg = Buffer.alloc(128);
         for (let i = 0; i < hmsg.length; i++) {
-            hmsg[i] = msgBytes[i] ^ j[i];
+            hmsg[i] = msgBytes[i] ^ h[i];
         }
         
         let sig = Buffer.concat([keyPair.PublicKey,shaKeyHash,hmsg])
@@ -79,9 +80,10 @@ export class SikeSig {
 
             let j = await this.sidh.sharedKey(private_key_A, signerPubKey);
             //let h = createHash('sha512').update(j).digest();
+            let h = await shake256(j, 128);
             let chk = Buffer.alloc(128);
             for (let i = 0; i < chk.length; i++) {
-                chk[i] = hmsg[i] ^ j[i];
+                chk[i] = hmsg[i] ^ h[i];
             };
 
             let ck_pubKeyHash = Buffer.alloc(32);
